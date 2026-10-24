@@ -1,0 +1,97 @@
+# Сборка, проверка и публикация игры на GitHub Pages.
+# Запускается при каждом push в main (и вручную на вкладке Actions).
+# Если любая проверка не прошла, старая версия сайта остаётся на месте.
+name: Публикация на GitHub Pages
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  build:
+    name: Сборка и проверки
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 24
+          cache: npm
+
+      - name: Установка зависимостей
+        run: npm ci
+
+      - name: Проверка типов, сборка и проверка путей сборки
+        run: npm run build
+
+      - name: Тесты игровой логики
+        run: npm test
+
+      - name: Браузер для проверки
+        run: npx playwright install --with-deps chromium
+
+      - name: Проверка в браузере («Играть» запускает игру и т. д.)
+        run: npm run e2e
+
+      - uses: actions/configure-pages@v6
+
+      - uses: actions/upload-pages-artifact@v5
+        with:
+          path: dist
+
+  deploy:
+    name: Публикация
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    outputs:
+      page_url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v5
+
+  verify:
+    name: Проверка опубликованной игры
+    needs: deploy
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 24
+          cache: npm
+
+      - run: npm ci
+
+      - name: Ожидание новой версии на публичном адресе
+        env:
+          PAGE_URL: ${{ needs.deploy.outputs.page_url }}
+        run: |
+          VERSION=$(node -p "require('./package.json').version")
+          for i in $(seq 1 30); do
+            if curl -fsS "$PAGE_URL?nocache=$i-$RANDOM" | grep -q "data-version=\"$VERSION\""; then
+              echo "Опубликована версия $VERSION"; exit 0
+            fi
+            echo "Ждём обновления CDN ($i/30)…"; sleep 10
+          done
+          echo "Новая версия так и не появилась по адресу $PAGE_URL"; exit 1
+
+      - name: Браузер для проверки
+        run: npx playwright install --with-deps chromium
+
+      - name: Проверка в браузере по публичному адресу
+        run: npm run e2e -- "${{ needs.deploy.outputs.page_url }}"

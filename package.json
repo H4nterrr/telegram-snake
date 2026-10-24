@@ -1,0 +1,23 @@
+{
+  "name": "telegram-snake",
+  "version": "1.1.0",
+  "private": true,
+  "description": "Классическая «Змейка» как Telegram Mini App",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "typecheck": "tsc --noEmit && tsc --noEmit -p tsconfig.node.json",
+    "test": "vitest run",
+    "build": "npm run typecheck && vite build && node scripts/check-dist.mjs",
+    "preview": "vite preview",
+    "e2e": "node e2e/smoke.mjs",
+    "check": "npm run build && npm test && npm run e2e"
+  },
+  "devDependencies": {
+    "@types/node": "^26.6.5",
+    "playwright": "^1.64.1",
+    "typescript": "^7.0.2",
+    "vite": "^8.3.5",
+    "vitest": "^5.0.5"
+  }
+}

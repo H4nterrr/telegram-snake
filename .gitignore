@@ -1,0 +1,23 @@
+# Зависимости и результаты сборки
+node_modules/
+dist/
+dist-ssr/
+*.local
+coverage/
+
+# Логи
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# Секреты (токен бота НИКОГДА не должен попадать в репозиторий)
+.env
+.env.*
+
+# Системные и редакторские файлы
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/*
+!.vscode/extensions.json

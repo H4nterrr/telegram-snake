@@ -1,0 +1,122 @@
+<!doctype html>
+<html lang="ru">
+  <head>
+    <meta charset="UTF-8" />
+    <!-- Официальный SDK Telegram Mini Apps: подключается первым, до остальных скриптов. -->
+    <script src="https://telegram.org/js/telegram-web-app.js?64"></script>
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover"
+    />
+    <meta name="color-scheme" content="light dark" />
+    <meta name="theme-color" content="#0f1720" />
+    <meta name="format-detection" content="telephone=no" />
+    <title>Змейка</title>
+    <link rel="icon" href="./favicon.svg" type="image/svg+xml" />
+    <script type="module" crossorigin src="./assets/index-vBg09tFy.js"></script>
+    <link rel="stylesheet" crossorigin href="./assets/index-BaNZZByW.css">
+  </head>
+  <body>
+    <div id="app" class="app">
+      <header class="topbar">
+        <div class="stats">
+          <div class="stat">
+            <span class="stat-label">Счёт</span>
+            <span class="stat-value" id="score">0</span>
+          </div>
+          <div class="stat">
+            <span class="stat-label">Рекорд</span>
+            <span class="stat-value" id="best">0</span>
+          </div>
+        </div>
+        <span class="speed-badge" id="speed-badge">Обычная</span>
+        <button class="icon-button" id="pause-button" type="button" aria-label="Пауза" title="Пауза (пробел)">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="6" y="5" width="4" height="14" rx="1.5" /><rect x="14" y="5" width="4" height="14" rx="1.5" /></svg>
+        </button>
+      </header>
+
+      <div class="play-area">
+      <main class="game" id="game">
+        <div class="board-wrap" id="board-wrap">
+          <canvas id="board" aria-label="Игровое поле"></canvas>
+        </div>
+      </main>
+
+      <nav class="dpad" id="dpad" aria-label="Кнопки управления">
+        <button type="button" class="dpad-btn up" data-dir="up" aria-label="Вверх">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 7l6 8H6z" /></svg>
+        </button>
+        <button type="button" class="dpad-btn left" data-dir="left" aria-label="Влево">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 12l8-6v12z" /></svg>
+        </button>
+        <button type="button" class="dpad-btn right" data-dir="right" aria-label="Вправо">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M17 12l-8 6V6z" /></svg>
+        </button>
+        <button type="button" class="dpad-btn down" data-dir="down" aria-label="Вниз">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 17l-6-8h12z" /></svg>
+        </button>
+      </nav>
+      </div>
+
+      <!-- Стартовый экран -->
+      <section class="overlay" id="menu" aria-labelledby="menu-title">
+        <div class="card">
+          <div class="logo" aria-hidden="true">🐍</div>
+          <h1 id="menu-title">Змейка</h1>
+          <p class="subtitle">Ешь, расти и не врезайся!</p>
+
+          <fieldset class="speeds">
+            <legend>Скорость</legend>
+            <div class="segmented" id="speed-options">
+              <label><input type="radio" name="speed" value="easy" /><span>Лёгкая</span></label>
+              <label><input type="radio" name="speed" value="normal" /><span>Обычная</span></label>
+              <label><input type="radio" name="speed" value="fast" /><span>Быстрая</span></label>
+            </div>
+          </fieldset>
+
+          <p class="menu-record">Рекорд: <b id="menu-best">0</b></p>
+
+          <button class="primary" id="play-button" type="button">Играть</button>
+
+          <div class="howto">
+            <h2>Как играть</h2>
+            <ul>
+              <li><span aria-hidden="true">👆</span> На телефоне — свайпы по полю или кнопки‑стрелки внизу.</li>
+              <li><span aria-hidden="true">⌨️</span> На компьютере — стрелки или W A S D.</li>
+              <li><span aria-hidden="true">⏸️</span> Пауза — кнопка вверху, пробел, P или Esc.</li>
+              <li><span aria-hidden="true">🍎</span> Каждая еда — +1 очко и +1 клетка длины.</li>
+              <li><span aria-hidden="true">💥</span> Нельзя врезаться в стену и в себя.</li>
+              <li><span aria-hidden="true">🏆</span> Заполните змейкой всё поле — это победа!</li>
+            </ul>
+          </div>
+        </div>
+      </section>
+
+      <!-- Пауза -->
+      <section class="overlay" id="pause" aria-labelledby="pause-title" hidden>
+        <div class="card compact">
+          <h2 id="pause-title" class="overlay-title">Пауза</h2>
+          <p class="overlay-text">Счёт: <b id="pause-score">0</b></p>
+          <button class="primary" id="resume-button" type="button">Продолжить</button>
+          <button class="secondary" id="pause-menu-button" type="button">В меню</button>
+        </div>
+      </section>
+
+      <!-- Конец игры / победа -->
+      <section class="overlay" id="over" aria-labelledby="over-title" hidden>
+        <div class="card compact">
+          <div class="logo small" id="over-icon" aria-hidden="true">💥</div>
+          <h2 id="over-title" class="overlay-title">Игра окончена</h2>
+          <p class="final-score" id="final-score">0</p>
+          <p class="new-record" id="new-record" hidden>🎉 Новый рекорд!</p>
+          <p class="overlay-text">Рекорд (<span id="over-speed">обычная</span>): <b id="over-best">0</b></p>
+          <button class="primary" id="restart-button" type="button">Ещё раз</button>
+          <button class="secondary" id="over-menu-button" type="button">В меню</button>
+          <p class="hint desktop-only">Enter — сыграть ещё раз</p>
+        </div>
+      </section>
+    </div>
+
+    <noscript>Для игры нужно включить JavaScript.</noscript>
+  </body>
+</html>
